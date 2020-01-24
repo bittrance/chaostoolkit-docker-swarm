@@ -1,0 +1,8 @@
+.coverage
+junit-test-results.xml
+.eggs/
+coverage.xml
+chaostoolkit_ext.egg-info/
+build/
+__pycache__/
+*.egg-info/
