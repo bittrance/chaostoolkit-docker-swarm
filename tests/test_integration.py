@@ -2,7 +2,7 @@ import docker
 import pytest
 import time
 
-from chaosswarm import actions
+from chaosswarm import actions, probes
 from chaoslib.exceptions import FailedActivity
 from hamcrest import *
 
@@ -38,6 +38,9 @@ def test_service(client):
     await_container_status(client, first_container_id, 'running')
     yield service
     service.remove()
+
+def test_running_tasks(client, test_service):
+    assert probes.running_tasks('redis') == 1
 
 def test_kill_task_successful(client, test_service):
     first_container_id = test_service.tasks()[0]['Status']['ContainerStatus']['ContainerID']
