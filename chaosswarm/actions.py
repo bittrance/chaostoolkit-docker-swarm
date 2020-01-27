@@ -49,6 +49,7 @@ def local_container(client, helpers):
 def call_helpers(local_helper, payload):
     cmd = [
         "wget", "-q", "--content-on-error", "-O", "-",
+        "--tries", "5", "--waitretry", "1", "--retry-connrefused",
         "--header", "Content-type: application/json",
         "--post-data", json.dumps(payload),
         "http://localhost:8080/submit"
