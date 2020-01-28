@@ -16,7 +16,7 @@ def create_helper_service(client, image):
         mode=docker.types.ServiceMode('global')
     )
 
-def ensure_helpers(client, image='bittrance/chaos-swarm-helper'):
+def ensure_helpers(client, image='bittrance/chaostoolkit-docker-swarm-helper:latest'):
     filters = {
       "label": "chaos-swarm-helper=v1"
     }
