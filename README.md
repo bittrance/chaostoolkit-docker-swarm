@@ -48,10 +48,11 @@ method:
       arguments:
         service: redis
     pauses:
-      after: 5
+      after: 7
 ```
 
 ```bash
+docker service create --name redis redis:latest
 chaos run ./swarm-experiment.yaml
 ```
 ```
