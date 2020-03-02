@@ -6,27 +6,38 @@ import time
 from chaoslib.exceptions import FailedActivity
 from chaoslib.types import Configuration, Secrets
 
-def create_helper_service(client, image):
-    return client.services.create(
-        name='chaos-swarm-helper',
-        image=image,
-        mounts=['/var/run/docker.sock:/var/run/docker.sock:rw'],
-        labels={'chaos-swarm-helper': 'v1'},
-        endpoint_spec=docker.types.EndpointSpec(mode='dnsrr'), # ports={8080: (8080, 'tcp', 'host')}),
-        mode=docker.types.ServiceMode('global')
-    )
+def ensure_helper_network(client, filters):
+    try:
+        return client.networks.list(filters=filters)[0]
+    except IndexError:
+        return client.networks.create(
+            name='chaos-swarm-helper',
+            driver='overlay',
+            labels=dict([filters['label'].split('=')]),
+        )
 
-def ensure_helpers(client, image='bittrance/chaostoolkit-docker-swarm-helper:latest'):
+def ensure_helper_service(client, image):
     filters = {
       "label": "chaos-swarm-helper=v1"
     }
     installed = client.services.list(filters=filters)
     if len(installed) == 1:
-        helpers = installed[0]
+        return installed[0]
     elif len(installed) > 1:
         raise RuntimeError("more than one helper service")
     else:
-        helpers = create_helper_service(client, image)
+        network = ensure_helper_network(client, filters)
+        return client.services.create(
+            name='chaos-swarm-helper',
+            image=image,
+            mounts=['/var/run/docker.sock:/var/run/docker.sock:rw'],
+            labels=dict([filters['label'].split('=')]),
+            networks=[network.id],
+            mode=docker.types.ServiceMode('global')
+        )
+
+def ensure_helpers(client, image='bittrance/chaostoolkit-docker-swarm-helper:latest'):
+    helpers = ensure_helper_service(client, image)
     deadline = time.time() + 60
     while time.time() < deadline:
         unhealthy_helpers = [helper for helper in helpers.tasks()
