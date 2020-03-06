@@ -2,7 +2,7 @@
 import json
 import pytest
 
-from chaosswarm.actions import kill_task
+from chaosswarm.actions import kill_task, restart_service
 from hamcrest import *
 from unittest.mock import Mock
 
@@ -26,3 +26,10 @@ def test_kill_task(mock_with_exec):
     kill_task('ze-service', docker_client = client, configuration = configuration)
     assert_that(payload_func(), has_entry('selector', {'services': {'name': 'ze-service'}}))
     assert_that(payload_func(), has_entry('action', ['pumba', 'kill', 'containers']))
+
+def test_restart_service():
+    client = Mock()
+    service = Mock(force_update = Mock(return_value = lambda : True))
+    client.services.get = Mock(return_value = service)
+    restart_service('ze-service', docker_client = client)
+    service.force_update.assert_called()

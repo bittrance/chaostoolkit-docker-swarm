@@ -89,3 +89,12 @@ def kill_task(service, docker_client = None, configuration: Configuration = {}, 
         "targets": 1,
         "action": ["pumba", "kill", "containers"],
     })
+
+def restart_service(service, docker_client = None):
+    """
+    Performs the equivalent of a docker service update --force in order to rotate
+    all containers.
+    """
+    client = docker_client or docker.from_env()
+    service_o = client.services.get(service)
+    service_o.force_update()
