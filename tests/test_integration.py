@@ -6,13 +6,17 @@ from chaosswarm import actions, probes
 from chaoslib.exceptions import FailedActivity
 from hamcrest import *
 
-def await_task(client, service, timeout=10):
+def await_task(client, service, status='running', timeout=10):
     deadline = time.time() + timeout
     while time.time() < deadline:
         if len(service.tasks()) == 0:
             continue
-        if 'ContainerStatus' not in service.tasks()[0]['Status']:
+        task = service.tasks()[0]
+        if 'ContainerStatus' not in task['Status']:
             continue
+        if task['Status']['State'] != status:
+            continue
+        time.sleep(0.1)
         return
     raise AssertionError('Timeout waiting for tasks on %s' % service.name)
 

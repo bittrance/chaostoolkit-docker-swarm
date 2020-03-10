@@ -18,13 +18,6 @@ def running_tasks(service: str, docker_client: docker.DockerClient = None):
         raise FailedActivity('No service named %s found' % service)
     actual_running = 0
     for task in service_o.tasks():
-        if task['DesiredState'] == 'running':
-            try:
-                container_id = task['Status']['ContainerStatus']['ContainerID']
-                if client.containers.get(container_id).status == 'running':
-                    actual_running += 1
-            except KeyError:
-                continue
-            except docker.errors.NotFound:
-                continue
+        if task['DesiredState'] == 'running' and task['Status']['State'] == 'running':
+            actual_running += 1
     return actual_running
